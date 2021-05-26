@@ -17,6 +17,7 @@ and contained some property:
 
 ```js
 import { fetchEmail } from 'jmap-fetch-test-email'
+import delve from 'dlv'
 
 async function waitAndFetch() {
 	const email = await fetchEmail({
@@ -25,6 +26,11 @@ async function waitAndFetch() {
 		hostname: 'betajmap.fastmail.com',
 		subject: 'New login alert!'
 	})
+	if (!email) {
+		// could not find email after waiting a while
+	} else {
+		// assert things about the email
+	}
 }
 ```
 

@@ -1,7 +1,7 @@
 import { fetchEmail } from './index.js'
 
 const test = async () => {
-	const { email, failed } = await fetchEmail({
+	const email = await fetchEmail({
 		username: process.env.JMAP_USERNAME,
 		password: process.env.JMAP_PASSWORD,
 		hostname: process.env.JMAP_HOSTNAME,
@@ -9,10 +9,10 @@ const test = async () => {
 			return emails[0]
 		},
 	})
-	if (failed) {
-		console.log('Could not find the email after retries.')
-	} else {
+	if (email) {
 		console.log('Found email:', email)
+	} else {
+		console.log('Could not find the email after retries.')
 	}
 }
 

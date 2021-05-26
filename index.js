@@ -140,5 +140,5 @@ export const fetchEmail = async ({
 		}
 	}
 
-	return { email, failed: retryCount >= maximumRetryCount }
+	return email
 }
