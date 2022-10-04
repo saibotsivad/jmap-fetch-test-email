@@ -1,6 +1,6 @@
+import { setTimeout as delay } from 'node:timers/promises'
 import { get, post } from 'httpie'
 import delve from 'dlv'
-import timers from 'timers/promises'
 
 const using = [
 	'urn:ietf:params:jmap:core',
@@ -10,6 +10,7 @@ const using = [
 export const fetchEmail = async ({
 	username,
 	password,
+	token,
 	hostname,
 	subject,
 	body,
@@ -28,22 +29,18 @@ export const fetchEmail = async ({
 	maximumRetryCount = 10,
 	retryDelayMillis = 3000,
 }) => {
-	if (!username || !password || !hostname) {
-		throw new Error('Username, password, and hostname must be provided.')
+	if (!username || !hostname || (!password && !token)) {
+		throw new Error('Username, hostname, and either a password or token must be provided.')
 	}
 	if (!subject && !body && !find) {
 		throw new Error('You must provide at least one of "subject", "body", and "find".')
 	}
 
-	const headers = {
-		'Content-Type': 'application/json',
-		Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`,
-	}
+	const headers = { 'Content-Type': 'application/json' }
+	if (password) headers.Authorization = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`
+	if (token) headers.Authorization = `Bearer ${token}`
 
 	const response = await get(`https://${hostname}/.well-known/jmap`, { headers })
-	if (response.statusCode !== 200) {
-		throw new Error('Could not authenticate using provided username, password, and hostname.')
-	}
 	const { apiUrl } = response.data
 	const accountId = response.data.primaryAccounts['urn:ietf:params:jmap:mail']
 
@@ -135,8 +132,9 @@ export const fetchEmail = async ({
 			: filteredEmails[0]
 
 		if (!email) {
+			console.log(`Found ${emails.length} emails${emails.length ? ', but none matching' : ''}. Waiting to retry...`)
 			retryCount++
-			await timers.setTimeout(retryDelayMillis)
+			await delay(retryDelayMillis)
 		}
 	}
 

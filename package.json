@@ -1,16 +1,26 @@
 {
   "name": "jmap-fetch-test-email",
   "version": "1.0.0",
-  "description": "Wait for and fetch a sent email over JMAP, e.g. for integration tests of email-sending tools.",
+  "description": "Wait for and fetch a sent email over JMAP, e.g. for integration tests of tools that send emails.",
   "main": "index.js",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/saibotsivad/jmap-fetch-test-email.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "jmap",
+    "email",
+    "testing",
+    "integration-testing",
+    "fastmail"
+  ],
+  "author": {
+    "name": "Tobias Davis",
+    "email": "tobias@davistobias.com",
+    "url": "https://davistobias.com"
+  },
+  "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
     "url": "https://github.com/saibotsivad/jmap-fetch-test-email/issues"
   },

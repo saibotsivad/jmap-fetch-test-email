@@ -12,26 +12,20 @@ npm install jmap-fetch-test-email
 
 ## Example
 
-If you have an integration test where a user-login event sends an email, and you want to assert that the email arrived
-and contained some property:
+If you have an integration test where a user-login event sends an email, and you want to assert that the email arrived  and contained some property:
 
 ```js
+import assert from 'node:assert'
 import { fetchEmail } from 'jmap-fetch-test-email'
-import delve from 'dlv'
 
-async function waitAndFetch() {
-	const email = await fetchEmail({
-		username: 'you@site.com',
-		password: 'battery-horse-staple',
-		hostname: 'betajmap.fastmail.com',
-		subject: 'New login alert!'
-	})
-	if (!email) {
-		// could not find email after waiting a while
-	} else {
-		// assert things about the email
-	}
-}
+const email = await fetchEmail({
+	username: 'you@site.com',
+	token: 'battery-horse-staple',
+	hostname: 'api.fastmail.com',
+	subject: 'New login alert!'
+})
+assert.ok(email, 'the email was found')
+// assert other things about the email
 ```
 
 ## Searching
@@ -47,7 +41,7 @@ You can specify a string for exact comparison:
 ```js
 fetchEmail({
 	username: '...',
-	password: '...',
+	token: '...',
 	hostname: '...',
 	subject: 'New login alert!'
 })
@@ -58,13 +52,13 @@ Or a regex for more complex searches:
 ```js
 fetchEmail({
 	username: '...',
-	password: '...',
+	token: '...',
 	hostname: '...',
-	subject: /^New login alert!$/
+	subject: /^Order \d+ is ready$/
 })
 ```
 
-**Note:** if you modify the `emailGetProperties` you must make sure it includes `subject` or an error will be thrown.
+> **Note:** if you modify `emailGetProperties` you must make sure it includes `subject` or an error will be thrown.
 
 ### `body`
 
@@ -75,7 +69,7 @@ You can specify a string, which will use the `String.includes` method:
 ```js
 fetchEmail({
 	username: '...',
-	password: '...',
+	token: '...',
 	hostname: '...',
 	body: 'Login attempt from 192.168.1.1'
 })
@@ -86,17 +80,17 @@ Or specify a regex for more complex searches:
 ```js
 fetchEmail({
 	username: '...',
-	password: '...',
+	token: '...',
 	hostname: '...',
-	subject: /^Login attempt from \d{1-3}/
+	body: /^Login attempt from \d{1-3}/
 })
 ```
 
-**Note:** if you modify the `emailGetProperties` you must make sure it includes `htmlBody` and `bodyValues` and ensure that you do not set `emailGetFetchHtmlBodyValues` to false (the default is `true`), or an error will be thrown.
+> **Note:** if you modify `emailGetProperties` you must make sure it includes `htmlBody` and `bodyValues` and ensure that you do not set `emailGetFetchHtmlBodyValues` to false (the default is `true`), or an error will be thrown.
 
 ### `find`
 
-If you need something more complex, you can specify a function which will be called on all retry attempts, and will contain the full list of emails.
+If you need something more complex, you can specify a function which will be called on all retry attempts, and will contain the full list of fetched emails.
 
 Simply return the email, if you find it, and the function will complete.
 
@@ -107,17 +101,20 @@ import cheerio from 'cheerio'
 
 fetchEmail({
 	username: '...',
-	password: '...',
+	token: '...',
 	hostname: '...',
-	find: emails => emails.find(email => {
-		const $ = cheerio.load(email._html)
-		const ipAddress = $('.ip-address', '#login').text()
-		return ipAddress === '192.168.1.1'
-	})
+	find: emails => {
+		const email = emails.find(email => {
+			const $ = cheerio.load(email._html)
+			const ipAddress = $('.ip-address', '#login').text()
+			return ipAddress === '192.168.1.1'
+		})
+		return email
+	}
 })
 ```
 
-**Note:** the property `_html` is not JMAP spec standard, it is a convenience property added on so that you don't have to pull out the `bodyValues` manually yourself.
+> **Note:** the property `_html` is not part of the JMAP specs, it is a convenience property added by this library so that you don't have to pull out the `bodyValues` manually yourself.
 
 ### Options
 
@@ -127,9 +124,13 @@ The full list of options you can pass in.
 
 The JMAP username, typically the email address.
 
-#### `password: String` *required*
+#### `token: String`
 
-The JMAP password.
+The JMAP token, used for `Bearer` authentication.
+
+#### `password: String`
+
+The JMAP password, used for `Basic` authentication (this is uncommon).
 
 #### `hostname: String` *required*
 
@@ -166,9 +167,13 @@ The default properties that will be fetched are:
 - `sender`
 - `bodyValues`
 
+If you use the `subject` property to find your email, make sure this list includes `subject` or an error will be thrown.
+
+If you use the `body` property to find your email, make sure this includes `htmlBody` and `bodyValues`, and ensure that you do not set `emailGetFetchHtmlBodyValues` to false (the default is `true`), or an error will be thrown.
+
 #### `emailGetFetchHtmlBodyValues: String` (default: `true`)
 
-If you don't want to return the HTML body in the JMAP fetch request, presumably for efficiency optimizations, you can set this to `false` to disable it.
+If you don't want to return the HTML body in the JMAP fetch request, you can set this to `false` to disable it.
 
 #### `maximumRetryCount: Integer` (default: `10`)
 
