@@ -1,6 +1,6 @@
 {
   "name": "jmap-fetch-test-email",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Wait for and fetch a sent email over JMAP, e.g. for integration tests of tools that send emails.",
   "main": "index.js",
   "type": "module",
